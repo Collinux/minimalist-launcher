@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    namespace 'launcher.minimalist.com'
+    compileSdkVersion 36
     defaultConfig {
         applicationId "launcher.simple.com.simplelauncher"
         minSdkVersion 4
