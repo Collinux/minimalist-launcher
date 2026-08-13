@@ -2,7 +2,10 @@ package launcher.minimalist.com;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
@@ -24,6 +27,14 @@ public class MainActivity extends Activity {
     private ArrayList<String> packageNames;
     private ArrayAdapter<String> adapter;
     private ListView listView;
+
+    // Apps can be installed or removed while the launcher sits in the background
+    private final BroadcastReceiver packageChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            fetchAppList();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +82,22 @@ public class MainActivity extends Activity {
                 return false;
             }
         });
+        // Keep the list in sync as apps are installed, removed, or updated
+        IntentFilter packageFilter = new IntentFilter();
+        packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+        packageFilter.addDataScheme("package");
+        registerReceiver(packageChangeReceiver, packageFilter);
+
         fetchAppList();
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(packageChangeReceiver);
+        super.onDestroy();
     }
 
     private void fetchAppList() {
